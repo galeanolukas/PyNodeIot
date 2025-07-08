@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}{{ node_id }}{% endblock %}
+{% block styles %}
+    /* Estilos mínimos necesarios para complementar w3.css */
+    .log-entry {
+        margin-bottom: 5px;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 5px;
+    }
+    .log-time {
+        color: #757575;
+    }
+    .sensor-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+    .sensor-unit {
+        font-size: 0.8rem;
+        color: #757575;
+    }
+    #logs-container {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    .device-icon {
+        font-size: 5rem;
+        margin: 20px 0;
+        text-align: center;
+    }
+{% endblock %}
+{% block top %}
+<div class="w3-bar w3-deep-orange w3-card w3-animate-top">
+
+  <span class="w3-bar-item w3-left w3-margin" style="font-size:1.2em;"><i class="fa fa-sitemap">
+        </i><a href="#home" style="text-decoration:none;" class="w3-margin"><b>{{ nodo_id }}</b></a>
+  </span>
+  <!-- Botónera  -->
+  <span class="w3-bar-item w3-button w3-margin w3-right" onclick="document.getElementById('logoutModal').style.display='block'">
+          <i class="fa fa-sign-out" style="font-size:1.5em;"></i>
+  </span>
+  <span class="w3-bar-item w3-right w3-margin {% if nodo.status == 'connected' %}w3-green{% else %}w3-red{% endif %}">
+                {% if nodo.status == "connected" %}Conectado{% else %}Desconectado{% endif %}
+  </span>
+  <span class="w3-bar-item w3-button w3-margin w3-right w3-black">
+          <i class="fa fa-terminal" style="font-size:1.5em;"></i>
+  </span>
+</div>
+{% endblock %}
+{% block content %}
+<!-- Modal de Confirmación de Logout -->
+<div id="logoutModal" class="w3-modal">
+    <div class="w3-modal-content w3-card-4 w3-animate-zoom" style="max-width:500px">
+        <div class="w3-center">
+            <div class="w3-container w3-deep-orange">
+                <span onclick="document.getElementById('logoutModal').style.display='none'"
+                      class="w3-button w3-display-topright">&times;</span>
+                <h3>Confirmar Salida</h3>
+            </div>
+            <div class="w3-padding">
+                <p>¿Estás seguro que deseas cerrar sesión?</p>
+                <div class="w3-padding-16">
+                    <button class="w3-button w3-red w3-margin-right"
+                            onclick="window.location.href='/logout'">Aceptar</button>
+                    <button class="w3-button w3-gray"
+                            onclick="document.getElementById('logoutModal').style.display='none'">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Fin del Modal -->
+<div class="w3-row">
+  <div class="w3-third w3-center">
+    <div class="w3-container w3-margin w3-card w3-deep-orange">
+    <!-- Icono del dispositivo centrado -->
+    <div class="device-icon">
+        {% if nodo.type == 'raspberry_pi' %}
+            <i class="fab fa-raspberry-pi"></i>
+        {% elif nodo.type == 'esp32' %}
+            <i class="fab fa-microchip"></i>
+        {% elif nodo.type == 'pico' %}
+            <i class="fab fa-microchip"></i>
+        {% elif nodo.type == 'labtop' %}
+            <i class="fab fa-laptop"></i>
+        {% elif nodo.type == 'pc' %}
+            <i class="fa fa-desktop"></i>
+        {% else %}
+            <i class="fab fa-question"></i>
+        {% endif %}
+    </div>
+    <span class="w3-xxlarge"><b>{{ nodo.type }}</b></span>
+    </div>
+  </div>
+    <!-- Información del nodo -->
+  <div class="w3-twothird w3-center">
+        <div class="w3-container w3-card w3-margin w3-deep-orange">
+        <h4 class="w3-border-bottom">Información del Nodo</h4>
+        <div class="w3-container-display">
+                <p><strong>Hostname:</strong> {{ nodo.data.hostname }}</p>
+                <p><strong>Dirección IP:</strong> {{ nodo.ip }}</p>
+                <p><strong>Última conexión:</strong> {{ nodo.data.last_update }}</p>
+                <p><strong>Firmware:</strong> {{ nodo.data.os }}</p>
+        </div>
+        </div>
+  </div>
+</div>
+<div class="w3-row">
+  <div class="w3-card w3-deep-orange w3-margin w3-center" style="min-height:300px;">
+    <h4 class="w3-padding">Hola mundo!!</h4>
+    <table>
+
+    </table>
+  </div>
+</div>
+<!-- Resto del JavaScript permanece igual -->
+<script>
+    // WebSocket connection y funciones...
+    async function updateNodes() {
+        try {
+            const response = await fetch('/api/nodes');
+            const data = await response.json();
+          }
+
+          catch (error) {
+            console.error('Error actualizar datos del nodo:', error);
+        }
+    }
+    // Actualizar cada 3 segundos y al cargar la página
+    setInterval(updateNodes, 3000);
+    window.addEventListener('DOMContentLoaded', updateNodes);
+</script>
+{% endblock %}
