@@ -1,0 +1,356 @@
+{% extends "base.html" %}
+{% block title %}{{ node_id }}{% endblock %}
+{% block styles %}
+        .pi-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2196F3;
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 4px;
+            margin: 5px 0;
+        }
+        .progress-bar {
+            height: 20px;
+            border-radius: 4px;
+            background-color: #4CAF50;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+        }
+{% endblock %}
+{% block top %}
+<div class="w3-bar w3-deep-orange w3-card w3-animate-top">
+    <span class="w3-bar-item w3-padding-large" style="font-size:1.2em;"><i class="fa fa-sitemap w3-padding">
+    </i><a href="#home" style="text-decoration:none;"><b>{{ node_id }}</b></a></span>
+    <div class="w3-right">
+        <span class="w3-bar-item w3-padding">
+            <a href="{{ host_url }}" class="w3-button" target="_blank"><i class="fa fa-server"></i></a>
+        </span>
+        <span class="w3-bar-item w3-padding">
+        <button onclick="document.getElementById('registerModal').style.display='block'" class="w3-button">
+            <i class="fa fa-key"></i>
+        </button>
+        </span>
+        <span class="w3-bar-item w3-padding">
+            <a href="#file" class="w3-button"><i class="fa fa-folder"></i></a>
+        </span>
+        <span id="connectionStatus">
+        </span>
+    </div>
+</div>
+{% endblock %}
+{% block content %}
+<!-- Modal de Registro -->
+<div class="w3-modal" id="registerModal" {% if not auth_configured %}style="display:block"{% endif %}>
+    <div class="w3-modal-content w3-card-4 w3-animate-zoom w3-deep-orange" style="max-width:600px">
+        <!-- Header -->
+        <div class="w3-container w3-padding-16">
+            <span onclick="document.getElementById('registerModal').style.display='none'"
+                class="w3-button w3-xlarge w3-display-topright w3-hover-red">&times;</span>
+            <h2 class="w3-center">
+                <i class="fa fa-key w3-text-white" style="font-size:20px"></i>
+                <b>
+                {% if not auth_configured %}Configuración Inicial{% else %}Cambia tu Contraseña{% endif %}
+                </b>
+            </h2>
+        </div>
+
+        <!-- Body -->
+        <div class="w3-container">
+            <div class="w3-center w3-padding-16">
+                <p>Por favor, establezca una contraseña para este nodo.</p>
+            </div>
+
+            <form class="w3-container" id="registerForm" method="post" action="/registro">
+                <!-- Password Fields -->
+                <div class="w3-section">
+                    <label class="w3-text-white"><b>Contraseña</b> (mínimo 8 caracteres)</label>
+                    <input class="w3-input w3-border w3-round"
+                        type="password"
+                        name="password"
+                        required
+                        minlength="8">
+                </div>
+
+                <div class="w3-section">
+                    <label class="w3-text-white"><b>Confirmar Contraseña</b></label>
+                    <input class="w3-input w3-border w3-round"
+                        type="password"
+                        name="confirmPassword"
+                        required
+                        minlength="8">
+                </div>
+
+                <!-- Error Message -->
+                <div id="errorMsg" class="w3-panel w3-red w3-hide"></div>
+
+                <!-- Submit Button - FIXED WIDTH -->
+                <div class="w3-section">
+                    <button type="submit"
+                        class="w3-button w3-block w3-blue w3-round-large w3-padding">
+                        <i class="fa fa-save"></i> Guardar Contraseña
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- Contenido principal -->
+<section class="w3-container w3-row" id="home">
+    <!-- Columna de Información del Sistema -->
+    <div class="w3-half w3-animate-opacity">
+        <div class="w3-card w3-margin w3-deep-orange">
+            <header class="w3-container w3-center">
+                <h3>Información del Sistema</h3>
+            </header>
+            <div class="w3-container">
+                <p><b>Hostname:</b> <span id="piHostname" class="pi-value">--</span></p>
+                <p><b>CPU:</b> <span id="piCpu" class="pi-value">--</span></p>
+
+                <p><b>Uso de CPU:</b></p>
+                <div class="progress-container">
+                    <div id="cpuProgress" class="progress-bar" style="width:0%">0%</div>
+                </div>
+
+                <p><b>Memoria:</b> <span id="piMemory" class="pi-value">--</span></p>
+                <div class="progress-container">
+                    <div id="memoryProgress" class="progress-bar" style="width:0%">0%</div>
+                </div>
+
+                <p><b>Uptime:</b> <span id="piUptime" class="pi-value">--</span></p>
+                <p><b>OS:</b> <span id="piOs" class="pi-value">--</span></p>
+            </div>
+        </div>
+    </div>
+    <!-- Columna de Estado -->
+    <div class="w3-half w3-animate-opacity">
+        <div class="w3-card w3-margin w3-deep-orange">
+            <header class="w3-container w3-center">
+                <h3>Estado del Nodo</h3>
+            </header>
+            <div class="w3-container">
+                <p><b>ID:</b> <span id="nodeIdText">{{ node_id }}</span></p>
+                <p><b>IP Pública:</b> <span id="publicIp">{{ ip_publica }}</span></p>
+                <p><b>Última conexión:</b> <span id="lastSeen">${last_seen}</span></p>
+
+                <p><b>Temperatura CPU:</b> <span id="piTemp" class="pi-value">-- °C</span></p>
+                <div class="progress-container">
+                    <div id="tempProgress" class="progress-bar" style="width:0%;background-color:#2196F3">0°C</div>
+                </div>
+
+                <p><b>Espacio Disco:</b> <span id="piDisk" class="pi-value">--</span></p>
+                <div class="progress-container">
+                    <div id="diskProgress" class="progress-bar" style="width:0%">0%</div>
+                </div>
+
+                <p><b>Última actualización:</b> <span id="lastUpdate" class="pi-value">--</span></p>
+            </div>
+        </div>
+    </div>
+</section>
+<section class="w3-container w3-center" id="file">
+    <div class="w3-row">
+      <h2>Explorador de Archivos</h2>
+      <!-- Ruta actual y cambiar directorio -->
+      <div class="w3-half">
+        <div class="w3-card w3-deep-orange w3-margin">
+            <h4>Directorio actual: <span class="dir-path">{{ current_dir }}</span></h4>
+            <form action="/files/change_dir" method="post" class="w3-container">
+                <input class="w3-input w3-border" type="text" name="new_dir"
+                           placeholder="Nueva ruta de directorio" value="{{ current_dir }}">
+                <button type="submit" class="w3-button w3-margin">
+                  <i class="fa fa-exchange"></i>
+                </button>
+            </form>
+        </div>
+      </div>
+      <!-- Subir archivos -->
+      <div class="w3-half">
+        <div class="w3-card w3-deep-orange w3-margin">
+            <h4>Subir Archivo</h4>
+            <form id="uploadForm" class="w3-container" enctype="multipart/form-data">
+                <input class="w3-input w3-border" type="file" name="file" required>
+                <button type="submit" class="w3-button w3-margin">
+                <i class="fa fa-cloud-upload"></i>
+                </button>
+            </form>
+            <div id="uploadStatus" class="w3-panel w3-hide"></div>
+        </div>
+      </div>
+      </div>
+      <!-- Lista de archivos -->
+      <div class="w3-row">
+        <div class="w3-card w3-margin">
+            <header class="w3-container w3-deep-orange">
+                <h4>Archivos en el directorio</h4>
+            </header>
+            {% if files %}
+                <table class="w3-table-all" style="max-height:400px; overflow-y:auto;">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Tamaño</th>
+                            <th>Modificado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for file in files %}
+                        <tr>
+                            <td>
+                                {% if file.is_dir %}
+                                <i class="fa fa-folder file-icon"></i>
+                                {% else %}
+                                <i class="fa fa-file file-icon"></i>
+                                {% endif %}
+                                {{ file.name }}
+                            </td>
+                            <td>
+                                {% if not file.is_dir %}
+                                {{ (file.size / 1024)|round(2) }} KB
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td>{{ file.modified }}</td>
+                            <td>
+                                {% if not file.is_dir %}
+                                <a href="/files/download/{{ file.name }}"
+                                   class="w3-button w3-small" target="_blank"><i class="fa fa-cloud-download"></i></a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+          {% else %}
+          <p>No hay archivos en este directorio.</p>
+          {% endif %}
+        </div>
+      </div>
+</section>
+<script>
+    // Conexión WebSocket para datos en tiempo real
+    const socket = new WebSocket(`ws://${window.location.hostname}:${window.location.port}/ws/node`);
+
+    // Manejo de conexión WebSocket
+    socket.onopen = function(e) {
+        console.log("Conexión WebSocket establecida");
+        document.getElementById('connectionStatus').innerHTML =
+            '<span class="w3-bar-item w3-padding"><button class="w3-button w3-text-green"><i class="fa fa-plug"></i></button></span>';
+    };
+
+    socket.onclose = function(e) {
+        console.log("Conexión WebSocket cerrada");
+        document.getElementById('connectionStatus').innerHTML =
+            '<span class="w3-bar-item w3-padding"><button class="w3-button w3-text-red"><i class="fa fa-plug"></i></button></span>';
+
+        // Intentar reconectar cada 5 segundos
+        setTimeout(() => {
+            window.location.reload();
+        }, 5000);
+    };
+
+    socket.onmessage = function(event) {
+        try {
+            const data = JSON.parse(event.data);
+            if (data.type === 'system_info') {
+                updateSystemInfo(data.data);
+            }
+        } catch (e) {
+            console.error("Error procesando mensaje:", e);
+        }
+    };
+
+    socket.onerror = function(error) {
+        console.error("Error WebSocket:", error);
+    };
+    // Función para actualizar la interfaz con los datos del sistema
+    function updateSystemInfo(info) {
+        // Información del Sistema
+        document.getElementById('piHostname').textContent = info.hostname || '--';
+        document.getElementById('piCpu').textContent = info.cpu || '--';
+        document.getElementById('piMemory').textContent = info.memory || '--';
+        document.getElementById('piUptime').textContent = info.uptime || '--';
+        document.getElementById('piOs').textContent = info.os || '--';
+
+        // Estado del Nodo
+        document.getElementById('piTemp').textContent = info.temperature || '--';
+        document.getElementById('piDisk').textContent = info.disk || '--';
+        document.getElementById('lastUpdate').textContent = info.last_update || '--';
+
+        // Actualizar barras de progreso (ejemplos - necesitarías adaptar según tus datos reales)
+        updateProgressBars(info);
+    }
+
+    // Manejar subida de archivos con AJAX
+    document.getElementById('uploadForm').onsubmit = async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const statusDiv = document.getElementById('uploadStatus');
+
+        try {
+            const response = await fetch('/files/upload', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+
+            statusDiv.textContent = result.message;
+            statusDiv.className = result.status === 'success' ?
+                'w3-panel w3-green' : 'w3-panel w3-red';
+            statusDiv.classList.remove('w3-hide');
+
+            if (result.status === 'success') {
+                setTimeout(() => window.location.reload(), 1000);
+            }
+        } catch (error) {
+            statusDiv.textContent = 'Error en la conexión';
+            statusDiv.className = 'w3-panel w3-red';
+            statusDiv.classList.remove('w3-hide');
+        }
+    };
+
+    // Función para actualizar las barras de progreso
+    function updateProgressBars(info) {
+        // Ejemplo para temperatura (asumiendo formato "50.2 °C")
+        if (info.temperature) {
+            const tempValue = parseFloat(info.temp_value);
+            const tempPercentage = Math.min(100, (tempValue / 80) * 100); // 80°C como máximo
+            const tempBar = document.getElementById('tempProgress');
+            tempBar.style.width = `${tempPercentage}%`;
+            tempBar.textContent = info.temperature;
+            tempBar.style.backgroundColor = tempPercentage > 80 ? '#f44336' :
+                                         tempPercentage > 60 ? '#ff9800' : '#2196F3';
+        }
+        // Ejemplo para memoria (asumiendo formato "123.4 MB / 456.7 MB")
+        if (info.memory) {
+            const memParts = info.memory.split('/');
+            if (memParts.length === 2) {
+                const used = parseFloat(memParts[0]);
+                const total = parseFloat(memParts[1]);
+                const memPercentage = (used / total) * 100;
+                const memBar = document.getElementById('memoryProgress');
+                memBar.style.width = `${memPercentage}%`;
+                memBar.textContent = `${Math.round(memPercentage)}%`;
+            }
+        }
+        // Ejemplo para disco (necesitarías parsear info.disk)
+        // Esto es un placeholder - necesitarías implementar el parsing real
+        const diskBar = document.getElementById('diskProgress');
+        diskBar.style.width = `30%`; // Ejemplo estático
+        diskBar.textContent = `30%`;  // Ejemplo estático
+    }
+    // Actualizar la hora cada segundo
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('lastSeen').textContent =
+            now.toLocaleString('es-ES');
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+</script>
+{% endblock %}

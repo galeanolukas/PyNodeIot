@@ -77,9 +77,9 @@
         {% if nodo.type == 'raspberry_pi' %}
             <i class="fab fa-raspberry-pi"></i>
         {% elif nodo.type == 'esp32' %}
-            <i class="fab fa-microchip"></i>
+            <i class="fa fa-microchip"></i>
         {% elif nodo.type == 'pico' %}
-            <i class="fab fa-microchip"></i>
+            <i class="fa fa-microchip"></i>
         {% elif nodo.type == 'labtop' %}
             <i class="fab fa-laptop"></i>
         {% elif nodo.type == 'pc' %}
@@ -105,10 +105,20 @@
   </div>
 </div>
 <div class="w3-row">
-  <div class="w3-card w3-deep-orange w3-margin w3-center" style="min-height:300px;">
-    <h4 class="w3-padding">Hola mundo!!</h4>
-    <table>
+  <div class="w3-card w3-deep-orange w3-margin" style="min-height:300px;padding:10px;">
+    <span class="w3-left w3-padding" style="font-size:1.5em;"><i class="fa fa-hdd-o"></i></span>
+    <table class="w3-table-all" style="max-height:400px; overflow-y:auto;">
+        <thead>
+            <tr class="w3-deep-orange">
+                <th>Nombre</th>
+                <th>Tamaño</th>
+                <th>Modificado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
 
+        </tbody>
     </table>
   </div>
 </div>
