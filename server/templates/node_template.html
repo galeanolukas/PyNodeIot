@@ -156,7 +156,7 @@
       <h2>Explorador de Archivos</h2>
       <!-- Ruta actual y cambiar directorio -->
       <div class="w3-half">
-        <div class="w3-card w3-deep-orange w3-margin">
+        <div class="w3-card w3-deep-orange w3-margin w3-padding">
             <h4>Directorio actual: <span class="dir-path">{{ current_dir }}</span></h4>
             <form action="/files/change_dir" method="post" class="w3-container">
                 <input class="w3-input w3-border" type="text" name="new_dir"
@@ -169,7 +169,7 @@
       </div>
       <!-- Subir archivos -->
       <div class="w3-half">
-        <div class="w3-card w3-deep-orange w3-margin">
+        <div class="w3-card w3-deep-orange w3-margin w3-padding">
             <h4>Subir Archivo</h4>
             <form id="uploadForm" class="w3-container" enctype="multipart/form-data">
                 <input class="w3-input w3-border" type="file" name="file" required>
